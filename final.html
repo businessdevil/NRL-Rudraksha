@@ -77,11 +77,57 @@
             overflow: hidden;
         }
 
-        .lang-switch-container {
+        /* ================= TOP CONTROL BAR ================= */
+        .top-controls {
             position: absolute;
             top: -2.6rem;
-            right: 0.6rem;
+            left: 0;
+            right: 0;
             z-index: 20;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* --------- PDF download button (top-left) --------- */
+        .pdf-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: .45rem;
+            font-family: 'Jost', sans-serif;
+            font-size: .7rem;
+            font-weight: 600;
+            letter-spacing: .05em;
+            padding: .42rem 1.1rem;
+            border-radius: 60px;
+            cursor: pointer;
+            background: var(--blue-accent);
+            color: #fff;
+            border: 1px solid var(--blue-accent);
+            box-shadow: 0 3px 10px rgba(44, 125, 160, .25);
+            transition: all .2s ease;
+            white-space: nowrap;
+        }
+
+        .pdf-btn i { font-size: .78rem; }
+
+        .pdf-btn:hover:not(:disabled) {
+            background: #24698A;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(44, 125, 160, .32);
+        }
+
+        .pdf-btn:active:not(:disabled) { transform: translateY(0); }
+
+        .pdf-btn:disabled {
+            opacity: .75;
+            cursor: progress;
+            transform: none;
+        }
+
+        /* --------- language switcher (top-right) --------- */
+        .lang-switch-container {
             display: flex;
             gap: 0.55rem;
             background: rgba(255, 255, 250, 0.85);
@@ -90,6 +136,7 @@
             border-radius: 60px;
             border: 1px solid var(--border-blue);
             box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+            margin-left: auto;
         }
 
         .lang-btn {
@@ -118,6 +165,7 @@
             color: var(--blue-accent);
         }
 
+        /* ================= HEADER ================= */
         .cert-header {
             position: relative;
             text-align: center;
@@ -174,7 +222,6 @@
             opacity: .6;
         }
 
-        /* Dynamic heading font */
         .handwritten-logo {
             font-family: 'Tangerine', 'Gotu', cursive;
             font-weight: 700;
@@ -231,6 +278,7 @@
             color: var(--blue-accent);
         }
 
+        /* ================= BODY ================= */
         .cert-body {
             padding: 1.8rem 2rem;
             display: flex;
@@ -423,6 +471,7 @@
             color: var(--blue-light);
         }
 
+        /* ================= FOOTER ================= */
         .cert-footer {
             background: var(--bg-secondary);
             border-top: 1px solid var(--border);
@@ -478,16 +527,15 @@
             opacity: .7;
         }
 
+        /* ================= RESPONSIVE ================= */
         @media(max-width:900px) {
             .image-gallery {
                 width: calc(100% + 4rem);
                 margin-left: -2rem;
                 margin-right: -2rem;
             }
-            .lang-switch-container {
-                top: -2.3rem;
-                right: 0.4rem;
-            }
+            .top-controls { top: -2.3rem; }
+            .top-controls { padding: 0 .4rem; }
         }
 
         @media(max-width:700px) {
@@ -500,19 +548,11 @@
                 margin-right: -1.5rem;
                 gap: .25rem;
             }
-            .lang-switch-container {
-                top: -2rem;
-                right: 0.3rem;
-                gap: 0.35rem;
-                padding: 0.15rem 0.2rem;
-            }
-            .lang-btn {
-                font-size: 0.65rem;
-                padding: 0.3rem 0.7rem;
-            }
-            .handwritten-logo {
-                font-size: clamp(1.8rem, 8vw, 2.8rem);
-            }
+            .top-controls { top: -2rem; padding: 0 .3rem; }
+            .lang-switch-container { gap: 0.35rem; padding: 0.15rem 0.2rem; }
+            .lang-btn { font-size: 0.65rem; padding: 0.3rem 0.7rem; }
+            .handwritten-logo { font-size: clamp(1.8rem, 8vw, 2.8rem); }
+            .pdf-btn { font-size: .65rem; padding: .3rem .75rem; }
         }
 
         @media(max-width:560px) {
@@ -533,19 +573,32 @@
             .cert-footer {
                 padding: 1rem;
             }
+            .top-controls { top: -1.7rem; padding: 0 .2rem; }
             .lang-switch-container {
-                top: -1.7rem;
-                right: 0.2rem;
                 gap: 0.25rem;
                 padding: 0.12rem 0.15rem;
                 border-radius: 50px;
             }
-            .lang-btn {
-                padding: 0.25rem 0.6rem;
-                font-size: 0.6rem;
+            .lang-btn { padding: 0.25rem 0.6rem; font-size: 0.6rem; }
+            .handwritten-logo { font-size: clamp(1.4rem, 8vw, 2.2rem); }
+            .pdf-btn { padding: .34rem .55rem; }
+            .pdf-btn-text { display: none; }
+        }
+
+        /* ================= PRINT FALLBACK ================= */
+        @media print {
+            @page { size: A4 portrait; margin: 8mm; }
+            body {
+                background: #fff !important;
+                padding: 0 !important;
+                display: block !important;
             }
-            .handwritten-logo {
-                font-size: clamp(1.4rem, 8vw, 2.2rem);
+            body::before { display: none !important; }
+            .top-controls { display: none !important; }
+            .frame { max-width: 100% !important; animation: none !important; }
+            .frame-inner {
+                box-shadow: none !important;
+                border: none !important;
             }
         }
     </style>
@@ -553,12 +606,25 @@
 <body>
 
 <div class="frame" id="certFrame">
-    <div class="lang-switch-container">
-        <button class="lang-btn active" data-lang="en">English</button>
-        <button class="lang-btn" data-lang="ne">नेपाली</button>
+
+    <!-- ============ TOP CONTROL BAR (button + language switcher) ============ -->
+    <div class="top-controls">
+        <!-- Download PDF button -->
+        <button class="pdf-btn" id="downloadPdfBtn" type="button" aria-label="Download certificate as PDF">
+            <i class="fas fa-file-pdf"></i>
+            <span class="pdf-btn-text">Download PDF</span>
+        </button>
+
+        <!-- Language switcher -->
+        <div class="lang-switch-container">
+            <button class="lang-btn active" data-lang="en">English</button>
+            <button class="lang-btn" data-lang="ne">नेपाली</button>
+        </div>
     </div>
 
+    <!-- ============ CERTIFICATE (captured for PDF) ============ -->
     <div class="frame-inner">
+
         <header class="cert-header">
             <div class="brand-chip">
                 <img src="chandra.png" class="tiny-symbol" alt="Chandra">
@@ -578,7 +644,10 @@
 
         <div class="cert-body">
             <div>
-                <div class="section-label"><i class="fas fa-eye"></i> <span id="photoEvidenceLabel">Photographic Evidence</span></div>
+                <div class="section-label">
+                    <i class="fas fa-eye"></i>
+                    <span id="photoEvidenceLabel">Photographic Evidence</span>
+                </div>
                 <div class="image-gallery">
                     <div class="image-card">
                         <img id="front-img" src="12-02-Front.jpg" alt="Front View">
@@ -592,7 +661,10 @@
             </div>
 
             <div>
-                <div class="section-label"><i class="fas fa-list"></i> <span id="specsLabel">Bead Specifications</span></div>
+                <div class="section-label">
+                    <i class="fas fa-list"></i>
+                    <span id="specsLabel">Bead Specifications</span>
+                </div>
                 <div class="details-panel">
                     <div class="details-grid">
                         <div>
@@ -624,7 +696,10 @@
             </div>
 
             <div>
-                <div class="section-label"><i class="fas fa-microscope"></i> <span id="obsSectionLabel">Gemological Observation</span></div>
+                <div class="section-label">
+                    <i class="fas fa-microscope"></i>
+                    <span id="obsSectionLabel">Gemological Observation</span>
+                </div>
                 <div class="obs-panel">
                     <p class="obs-text" id="obsTextParagraph">
                         Under high-magnification analysis, the bead exhibits <span id="obsMukhiCount">12</span> distinct,
@@ -634,8 +709,10 @@
                     </p>
                     <div class="obs-verdict">
                         <i class="fas fa-check-circle"></i>
-                        <span id="obsVerdictText">Certified Genuine — All authenticity protocols passed.
-                            <span id="verdictMukhi">Twelve Mukhi</span> Rudraksha confirmed by gemological analysis.</span>
+                        <span id="obsVerdictText">
+                            Certified Genuine — All authenticity protocols passed.
+                            <span id="verdictMukhi">Twelve Mukhi</span> Rudraksha confirmed by gemological analysis.
+                        </span>
                     </div>
                 </div>
             </div>
@@ -652,139 +729,144 @@
         </div>
 
         <footer class="cert-footer">
-            <div class="footer-brand"><i class="fas fa-flask"></i> <span id="footerBrandName">Nepal Rudraksha Lab</span></div>
+            <div class="footer-brand">
+                <i class="fas fa-flask"></i>
+                <span id="footerBrandName">Nepal Rudraksha Lab</span>
+            </div>
             <div class="footer-contacts">
                 <span><i class="fas fa-envelope"></i> <span id="footerEmailText">lab@nepalrudraksha.com</span></span>
                 <span><i class="fas fa-phone-alt"></i> <span id="footerPhoneText">+977 9703712118</span></span>
                 <span><i class="fas fa-map-marker-alt"></i> <span id="footerAddressText">Pashupatinath, Kathmandu, Nepal</span></span>
                 <a href="#"><i class="fas fa-globe"></i> <span id="footerWebsiteText">www.nepalrudrakshalab.com</span></a>
             </div>
-            <div class="footer-copy" id="footerCopyText">© 2026 Nepal Rudraksha Lab • Accredited Rudraksha Testing • All Certificates Verifiable Online</div>
+            <div class="footer-copy" id="footerCopyText">
+                © 2026 Nepal Rudraksha Lab • Accredited Rudraksha Testing • All Certificates Verifiable Online
+            </div>
         </footer>
     </div>
 </div>
 
 <script>
-(function() {
-    // -------------------------- URL PARAMETER PARSING --------------------------
-    const urlParams = new URLSearchParams(window.location.search);
+(function () {
+    'use strict';
 
-    // Get dynamic values from URL, with fallback defaults
-    const certNo = urlParams.get('cert') || "026-N12-002";
-    const mukhi = parseInt(urlParams.get('mukhi')) || 12;
-    const frontImg = urlParams.get('front') || "12-02-Front.jpg";
-    const backImg = urlParams.get('back') || "12-02-Back.jpg";
-    const shapeParam = urlParams.get('shape') || "Oval";
-    const dimensions = urlParams.get('dimensions') || "27.3 × 22.4 × 17.1";
-    const weight = parseFloat(urlParams.get('weight')) || 3.87;
+    /* ============================================================
+       1. URL PARAMETERS
+       ============================================================ */
+    const urlParams   = new URLSearchParams(window.location.search);
+    const certNo      = urlParams.get('cert') || "026-N12-002";
+    const mukhi       = parseInt(urlParams.get('mukhi'), 10) || 12;
+    const frontImg    = urlParams.get('front') || "12-02-Front.jpg";
+    const backImg     = urlParams.get('back') || "12-02-Back.jpg";
+    const shapeParam  = urlParams.get('shape') || "Oval";
+    const dimensions  = urlParams.get('dimensions') || "27.3 × 22.4 × 17.1";
+    const weight      = parseFloat(urlParams.get('weight')) || 3.87;
 
-    // Shape mapping
     const shapeMap = {
-        Round: { en: "Round", ne: "गोलाकार" },
-        Oval: { en: "Oval", ne: "अण्डाकार" },
+        Round:    { en: "Round",     ne: "गोलाकार" },
+        Oval:     { en: "Oval",      ne: "अण्डाकार" },
         HalfMoon: { en: "Half Moon", ne: "अर्धचन्द्राकार" }
     };
     const selectedShape = shapeMap[shapeParam] || shapeMap["Oval"];
 
-    // Number to Devanagari converter (for Nepali)
+    /* ---------- Devanagari number helpers ---------- */
     const devanagariDigits = ['०','१','२','३','४','५','६','७','८','९'];
-    function toNepaliNumber(num) {
-        return num.toString().replace(/\d/g, d => devanagariDigits[d]);
-    }
-    function convertDigitsToNepali(str) {
-        return str.replace(/\d/g, d => devanagariDigits[d]);
-    }
+    const toNepaliNumber = (num) =>
+        String(num).replace(/\d/g, d => devanagariDigits[d]);
+    const convertDigitsToNepali = (str) =>
+        String(str).replace(/\d/g, d => devanagariDigits[d]);
 
-    // Mukhi word in Nepali (e.g., "१२ मुखी")
     const nepaliMukhi = toNepaliNumber(mukhi) + " मुखी";
 
-    // Image label helper
-    function getFrontLabel(lang, mukhiCount) {
-        if (lang === 'en') return `Front View <span>· ${mukhiCount} Mukhi ·</span> Natural Surface`;
-        else return `अग्रभाग <span>· ${toNepaliNumber(mukhiCount)} मुखी ·</span> प्राकृतिक दाना`;
-    }
-    function getBackLabel(lang, mukhiCount) {
-        if (lang === 'en') return `Back View <span>· Natural Lines ·</span> Unaltered`;
-        else return `पश्चभाग <span>· प्राकृतिक मुखी ·</span> अपरिवर्तित`;
-    }
+    /* ---------- Image labels ---------- */
+    const getFrontLabel = (lang, count) => lang === 'en'
+        ? `Front View <span>· ${count} Mukhi ·</span> Natural Surface`
+        : `अग्रभाग <span>· ${toNepaliNumber(count)} मुखी ·</span> प्राकृतिक दाना`;
 
-    // Set image src attributes immediately
+    const getBackLabel = (lang) => lang === 'en'
+        ? `Back View <span>· Natural Lines ·</span> Unaltered`
+        : `पश्चभाग <span>· प्राकृतिक मुखी ·</span> अपरिवर्तित`;
+
+    /* ---------- Set image src immediately ---------- */
     document.getElementById('front-img').src = frontImg;
-    document.getElementById('back-img').src = backImg;
+    document.getElementById('back-img').src  = backImg;
 
-    // -------------------------- TRANSLATION DICTIONARY --------------------------
+    /* ============================================================
+       2. TRANSLATIONS
+       ============================================================ */
     const translations = {
         en: {
-            brandChipText: "Official Authenticity Certificate",
-            handwrittenLogo: "Nepal Rudraksha Lab",
-            brandTagline: "Gemological Testing • Rudraksha Authentication",
-            certBadgeText: "Certificate of Authenticity",
-            photoEvidenceLabel: "Photographic Evidence",
-            specsLabel: "Bead Specifications",
-            certNoLabel: "Certificate No.",
-            certNoValue: certNo,
-            dimsLabel: "Dimensions (mm)",
-            dimsValue: dimensions,
-            weightLabel: "Weight",
-            weightValue: weight + " g",
-            mukhiLabel: "Mukhi Count",
-            mukhiValue: mukhi + " Mukhi",
-            shapeLabel: "Shape",
-            shapeValue: selectedShape.en,
-            originLabel: "Origin",
-            originValue: "Nepal",
-            obsSectionLabel: "Gemological Observation",
-            obsMukhiCount: mukhi,
-            obsTextParagraph: `Under high-magnification analysis, the bead exhibits ${mukhi} distinct, naturally formed mukhi lines with no evidence of artificial scoring or chemical treatment. Surface texture and internal structure are consistent with authentic <em>Elaeocarpus ganitrus</em> origin. No synthetic resin, pigment dyes, or tampering detected.`,
-            obsVerdictText: `Certified Genuine — All authenticity protocols passed. ${mukhi} Mukhi Rudraksha confirmed by gemological analysis.`,
-            guaranteeText: "<strong>Nepal Rudraksha Lab Guarantee:</strong> If this Rudraksha bead is proven artificial, duplicate, or non-genuine, full refund eligibility is granted upon verification. Our lab stands behind every certified bead with lifetime authenticity assurance.",
-            footerBrandName: "Nepal Rudraksha Lab",
-            footerEmailText: "lab@nepalrudraksha.com",
-            footerPhoneText: "+977 9703712118",
+            brandChipText:     "Official Authenticity Certificate",
+            handwrittenLogo:   "Nepal Rudraksha Lab",
+            brandTagline:      "Gemological Testing • Rudraksha Authentication",
+            certBadgeText:     "Certificate of Authenticity",
+            photoEvidenceLabel:"Photographic Evidence",
+            specsLabel:        "Bead Specifications",
+            certNoLabel:       "Certificate No.",
+            certNoValue:       certNo,
+            dimsLabel:         "Dimensions (mm)",
+            dimsValue:         dimensions,
+            weightLabel:       "Weight",
+            weightValue:       weight + " g",
+            mukhiLabel:        "Mukhi Count",
+            mukhiValue:        mukhi + " Mukhi",
+            shapeLabel:        "Shape",
+            shapeValue:        selectedShape.en,
+            originLabel:       "Origin",
+            originValue:       "Nepal",
+            obsSectionLabel:   "Gemological Observation",
+            obsMukhiCount:     mukhi,
+            obsTextParagraph:  `Under high-magnification analysis, the bead exhibits ${mukhi} distinct, naturally formed mukhi lines with no evidence of artificial scoring or chemical treatment. Surface texture and internal structure are consistent with authentic <em>Elaeocarpus ganitrus</em> origin. No synthetic resin, pigment dyes, or tampering detected.`,
+            obsVerdictText:    `Certified Genuine — All authenticity protocols passed. ${mukhi} Mukhi Rudraksha confirmed by gemological analysis.`,
+            guaranteeText:     "<strong>Nepal Rudraksha Lab Guarantee:</strong> If this Rudraksha bead is proven artificial, duplicate, or non-genuine, full refund eligibility is granted upon verification. Our lab stands behind every certified bead with lifetime authenticity assurance.",
+            footerBrandName:   "Nepal Rudraksha Lab",
+            footerEmailText:   "lab@nepalrudraksha.com",
+            footerPhoneText:   "+977 9703712118",
             footerAddressText: "Pashupatinath, Kathmandu, Nepal",
             footerWebsiteText: "www.nepalrudrakshalab.com",
-            footerCopyText: "© 2026 Nepal Rudraksha Lab • Accredited Rudraksha Testing • All Certificates Verifiable Online"
+            footerCopyText:    "© 2026 Nepal Rudraksha Lab • Accredited Rudraksha Testing • All Certificates Verifiable Online"
         },
         ne: {
-            brandChipText: "आधिकारिक प्रमाणपत्र",
-            handwrittenLogo: "नेपाल रुद्राक्ष प्रयोगशाला",
-            brandTagline: "रत्न परीक्षण • रुद्राक्ष प्रमाणीकरण",
-            certBadgeText: "मौलिकताको प्रमाणपत्र",
-            photoEvidenceLabel: "दृश्यात्मक प्रमाण",
-            specsLabel: "रुद्राक्षको विवरण",
-            certNoLabel: "प्रमाणपत्र नं.",
-            certNoValue: convertDigitsToNepali(certNo),
-            dimsLabel: "आयाम (मि.मि)",
-            dimsValue: convertDigitsToNepali(dimensions),
-            weightLabel: "तौल",
-            weightValue: toNepaliNumber(weight) + " ग्राम",
-            mukhiLabel: "मुखी संख्या",
-            mukhiValue: nepaliMukhi,
-            shapeLabel: "आकार",
-            shapeValue: selectedShape.ne,
-            originLabel: "उत्पत्ति स्थान",
-            originValue: "नेपाल",
-            obsSectionLabel: "परीक्षण अवलोकन",
-            obsMukhiCount: toNepaliNumber(mukhi),
-            obsTextParagraph: `सुक्ष्मदर्शन यन्त्रबाट अवलोकन गर्दा, दानामा ${toNepaliNumber(mukhi)} वटा प्राकृतिक मुखीको रेखाहरू अवलोकन गरिन्छ जसमा कृत्रिम बनावट वा रासायनिक प्रयोगको कुनै प्रमाण छैन। सतहको बनावट र आन्तरिक संरचना हेर्दा रुद्राक्ष <em>Elaeocarpus ganitrus (Nepal)</em> प्रजातिको पुष्टि हुन्छ। कुनै कृत्रिम पदार्थ, रंगद्रव्य रङ्ग, वा छेडखानी पत्ता लागेन।`,
-            obsVerdictText: `मौलिकता प्रमाणित — सबै प्रमाणिकता विधि पारित। ${nepaliMukhi} रुद्राक्ष सुक्ष्मदर्शन परीक्षणद्वारा पुष्टि गरियो।`,
-            guaranteeText: "<strong>नेपाल रुद्राक्ष प्रयोगशाला ग्यारेन्टी:</strong> यदि यो रुद्राक्ष दाना कृत्रिम, नक्कल, वा गैर-प्रामाणिक साबित भएमा, पुनः जाँच पश्चात खरिद रकम फिर्ता गरिनेछ। हाम्रो प्रयोगशालाबाट प्रमाणित हरेक रुद्राक्षको लागि आजीवन आश्वासनको साथ जिम्मेवारबोध छौँ।",
-            footerBrandName: "नेपाल रुद्राक्ष प्रयोगशाला",
-            footerEmailText: "lab@nepalrudraksha.com",
-            footerPhoneText: "+977 9703712118",
+            brandChipText:     "आधिकारिक प्रमाणपत्र",
+            handwrittenLogo:   "नेपाल रुद्राक्ष प्रयोगशाला",
+            brandTagline:      "रत्न परीक्षण • रुद्राक्ष प्रमाणीकरण",
+            certBadgeText:     "मौलिकताको प्रमाणपत्र",
+            photoEvidenceLabel:"दृश्यात्मक प्रमाण",
+            specsLabel:        "रुद्राक्षको विवरण",
+            certNoLabel:       "प्रमाणपत्र नं.",
+            certNoValue:       convertDigitsToNepali(certNo),
+            dimsLabel:         "आयाम (मि.मि)",
+            dimsValue:         convertDigitsToNepali(dimensions),
+            weightLabel:       "तौल",
+            weightValue:       toNepaliNumber(weight) + " ग्राम",
+            mukhiLabel:        "मुखी संख्या",
+            mukhiValue:        nepaliMukhi,
+            shapeLabel:        "आकार",
+            shapeValue:        selectedShape.ne,
+            originLabel:       "उत्पत्ति स्थान",
+            originValue:       "नेपाल",
+            obsSectionLabel:   "परीक्षण अवलोकन",
+            obsMukhiCount:     toNepaliNumber(mukhi),
+            obsTextParagraph:  `सुक्ष्मदर्शन यन्त्रबाट अवलोकन गर्दा, दानामा ${toNepaliNumber(mukhi)} वटा प्राकृतिक मुखीको रेखाहरू अवलोकन गरिन्छ जसमा कृत्रिम बनावट वा रासायनिक प्रयोगको कुनै प्रमाण छैन। सतहको बनावट र आन्तरिक संरचना हेर्दा रुद्राक्ष <em>Elaeocarpus ganitrus (Nepal)</em> प्रजातिको पुष्टि हुन्छ। कुनै कृत्रिम पदार्थ, रंगद्रव्य रङ्ग, वा छेडखानी पत्ता लागेन।`,
+            obsVerdictText:    `मौलिकता प्रमाणित — सबै प्रमाणिकता विधि पारित। ${nepaliMukhi} रुद्राक्ष सुक्ष्मदर्शन परीक्षणद्वारा पुष्टि गरियो।`,
+            guaranteeText:     "<strong>नेपाल रुद्राक्ष प्रयोगशाला ग्यारेन्टी:</strong> यदि यो रुद्राक्ष दाना कृत्रिम, नक्कल, वा गैर-प्रामाणिक साबित भएमा, पुनः जाँच पश्चात खरिद रकम फिर्ता गरिनेछ। हाम्रो प्रयोगशालाबाट प्रमाणित हरेक रुद्राक्षको लागि आजीवन आश्वासनको साथ जिम्मेवारबोध छौँ।",
+            footerBrandName:   "नेपाल रुद्राक्ष प्रयोगशाला",
+            footerEmailText:   "lab@nepalrudraksha.com",
+            footerPhoneText:   "+977 9703712118",
             footerAddressText: "पशुपतिनाथ, काठमाडौं, नेपाल",
             footerWebsiteText: "www.nepalrudrakshalab.com",
-            footerCopyText: "© २०२६ नेपाल रुद्राक्ष प्रयोगशाला • मान्यता प्राप्त रुद्राक्ष परीक्षण • सबै प्रमाणपत्र अनलाइन प्रमाणित गर्न मिल्ने"
+            footerCopyText:    "© २०२६ नेपाल रुद्राक्ष प्रयोगशाला • मान्यता प्राप्त रुद्राक्ष परीक्षण • सबै प्रमाणपत्र अनलाइन प्रमाणित गर्न मिल्ने"
         }
     };
 
-    // Helper to set element content
-    const setContent = (id, content, asHtml = false) => {
+    /* ============================================================
+       3. LANGUAGE ENGINE
+       ============================================================ */
+    const setContent = (id, content, asHtml) => {
         const el = document.getElementById(id);
-        if (el) {
-            if (asHtml) el.innerHTML = content;
-            else el.innerText = content;
-        }
+        if (!el) return;
+        if (asHtml) el.innerHTML = content;
+        else el.textContent = content;
     };
 
     let currentLang = 'en';
@@ -793,49 +875,44 @@
         const t = translations[lang];
         if (!t) return;
 
-        // Font class toggle
-        const frame = document.getElementById('certFrame');
-        if (lang === 'ne') frame.classList.add('lang-ne');
-        else frame.classList.remove('lang-ne');
+        document.getElementById('certFrame')
+            .classList.toggle('lang-ne', lang === 'ne');
 
-        // Text fields
-        setContent("brandChipText", t.brandChipText);
-        setContent("handwrittenLogo", t.handwrittenLogo);
-        setContent("brandTagline", t.brandTagline);
-        setContent("certBadgeText", t.certBadgeText);
-        setContent("photoEvidenceLabel", t.photoEvidenceLabel);
-        setContent("specsLabel", t.specsLabel);
-        setContent("certNoLabel", t.certNoLabel);
-        setContent("certNoValue", t.certNoValue);
-        setContent("dimsLabel", t.dimsLabel);
-        setContent("dimsValue", t.dimsValue);
-        setContent("weightLabel", t.weightLabel);
-        setContent("weightValue", t.weightValue);
-        setContent("mukhiLabel", t.mukhiLabel);
-        setContent("mukhiValue", t.mukhiValue);
-        setContent("shapeLabel", t.shapeLabel);
-        setContent("shapeValue", t.shapeValue);
-        setContent("originLabel", t.originLabel);
-        setContent("originValue", t.originValue);
-        setContent("obsSectionLabel", t.obsSectionLabel);
-        setContent("obsTextParagraph", t.obsTextParagraph, true);
-        setContent("obsVerdictText", t.obsVerdictText);
-        setContent("guaranteeText", t.guaranteeText, true);
-        setContent("footerBrandName", t.footerBrandName);
-        setContent("footerEmailText", t.footerEmailText);
-        setContent("footerPhoneText", t.footerPhoneText);
+        setContent("brandChipText",     t.brandChipText);
+        setContent("handwrittenLogo",   t.handwrittenLogo);
+        setContent("brandTagline",      t.brandTagline);
+        setContent("certBadgeText",     t.certBadgeText);
+        setContent("photoEvidenceLabel",t.photoEvidenceLabel);
+        setContent("specsLabel",        t.specsLabel);
+        setContent("certNoLabel",       t.certNoLabel);
+        setContent("certNoValue",       t.certNoValue);
+        setContent("dimsLabel",         t.dimsLabel);
+        setContent("dimsValue",         t.dimsValue);
+        setContent("weightLabel",       t.weightLabel);
+        setContent("weightValue",       t.weightValue);
+        setContent("mukhiLabel",        t.mukhiLabel);
+        setContent("mukhiValue",        t.mukhiValue);
+        setContent("shapeLabel",        t.shapeLabel);
+        setContent("shapeValue",        t.shapeValue);
+        setContent("originLabel",       t.originLabel);
+        setContent("originValue",       t.originValue);
+        setContent("obsSectionLabel",   t.obsSectionLabel);
+        setContent("obsTextParagraph",  t.obsTextParagraph, true);
+        setContent("obsVerdictText",    t.obsVerdictText);
+        setContent("guaranteeText",     t.guaranteeText, true);
+        setContent("footerBrandName",   t.footerBrandName);
+        setContent("footerEmailText",   t.footerEmailText);
+        setContent("footerPhoneText",   t.footerPhoneText);
         setContent("footerAddressText", t.footerAddressText);
         setContent("footerWebsiteText", t.footerWebsiteText);
-        setContent("footerCopyText", t.footerCopyText);
+        setContent("footerCopyText",    t.footerCopyText);
 
-        // Image labels with dynamic mukhi
         setContent("frontImageLabel", getFrontLabel(lang, mukhi), true);
-        setContent("backImageLabel", getBackLabel(lang, mukhi), true);
+        setContent("backImageLabel",  getBackLabel(lang), true);
 
         currentLang = lang;
     }
 
-    // Language buttons
     const enBtn = document.querySelector('.lang-btn[data-lang="en"]');
     const neBtn = document.querySelector('.lang-btn[data-lang="ne"]');
 
@@ -843,12 +920,11 @@
         if (lang === 'en') {
             enBtn.classList.add('active');
             neBtn.classList.remove('active');
-            applyLanguage('en');
         } else {
             neBtn.classList.add('active');
             enBtn.classList.remove('active');
-            applyLanguage('ne');
         }
+        applyLanguage(lang);
     }
 
     if (enBtn && neBtn) {
@@ -856,8 +932,120 @@
         neBtn.addEventListener('click', () => setActiveLang('ne'));
     }
 
-    // Initial: English
     setActiveLang('en');
+
+    /* ============================================================
+       4. PDF DOWNLOAD  (single-page A4)
+       ============================================================ */
+    const PDF_LIBS = {
+        html2canvas: 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+        jspdf:       'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+    };
+
+    function loadScriptOnce(src) {
+        return new Promise((resolve, reject) => {
+            if (Array.from(document.scripts).some(s => s.src === src)) {
+                return resolve();
+            }
+            const s = document.createElement('script');
+            s.src = src;
+            s.async = true;
+            s.onload = () => resolve();
+            s.onerror = () => reject(new Error('Failed to load ' + src));
+            document.head.appendChild(s);
+        });
+    }
+
+    function waitForImages(root) {
+        const imgs = Array.from(root.querySelectorAll('img'));
+        return Promise.all(imgs.map(img =>
+            (img.complete && img.naturalWidth > 0)
+                ? Promise.resolve()
+                : new Promise(res => {
+                    img.addEventListener('load',  res, { once: true });
+                    img.addEventListener('error', res, { once: true });
+                })
+        ));
+    }
+
+    async function downloadCertificatePDF() {
+        const btn = document.getElementById('downloadPdfBtn');
+        const originalHTML = btn.innerHTML;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i><span class="pdf-btn-text">Preparing…</span>';
+
+        try {
+            await Promise.all([
+                loadScriptOnce(PDF_LIBS.html2canvas),
+                loadScriptOnce(PDF_LIBS.jspdf)
+            ]);
+
+            if (document.fonts && document.fonts.ready) {
+                try { await document.fonts.ready; } catch (e) { /* noop */ }
+            }
+
+            const el = document.querySelector('.frame-inner');
+            await waitForImages(el);
+
+            // Auto-cap resolution: max 3x, but never beyond ~16 MP
+            const pxCount = Math.max(el.offsetWidth * el.offsetHeight, 1);
+            const scale = Math.max(2, Math.min(3, Math.sqrt(16_000_000 / pxCount)));
+
+            const canvas = await window.html2canvas(el, {
+                scale: scale,
+                useCORS: true,
+                allowTaint: false,
+                backgroundColor: '#F5F9FF',
+                logging: false,
+                imageTimeout: 0
+            });
+
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4',
+                compress: true
+            });
+
+            const pageW  = pdf.internal.pageSize.getWidth();
+            const pageH  = pdf.internal.pageSize.getHeight();
+            const margin = 6;
+
+            // Scale to fit → guaranteed single page
+            const fit  = Math.min(
+                (pageW - margin * 2) / canvas.width,
+                (pageH - margin * 2) / canvas.height
+            );
+            const imgW = canvas.width  * fit;
+            const imgH = canvas.height * fit;
+
+            pdf.addImage(
+                canvas.toDataURL('image/jpeg', 0.96),
+                'JPEG',
+                (pageW - imgW) / 2,
+                (pageH - imgH) / 2,
+                imgW,
+                imgH
+            );
+
+            pdf.save(`NepalRudrakshaLab-Certificate-${certNo}.pdf`);
+
+        } catch (err) {
+            console.error('PDF generation failed:', err);
+            // Graceful fallback: browser "Save as PDF" using print CSS
+            window.print();
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+        }
+    }
+
+    const pdfBtn = document.getElementById('downloadPdfBtn');
+    if (pdfBtn) {
+        pdfBtn.addEventListener('click', downloadCertificatePDF);
+    }
 })();
 </script>
 </body>
