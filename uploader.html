@@ -48,8 +48,8 @@
 
   /* ---------- CONTROLS ---------- */
   .controls {
-    width: 340px;
-    flex: 0 0 340px;
+    width: 360px;
+    flex: 0 0 360px;
     background: #fff;
     border: 1px solid #d8dce5;
     border-radius: 12px;
@@ -57,28 +57,65 @@
     box-shadow: 0 4px 18px rgba(0,0,0,.08);
     position: sticky;
     top: 18px;
+    max-height: calc(100vh - 36px);
+    overflow-y: auto;
   }
   .controls h2 {
-    margin: 0 0 12px;
+    margin: 0 0 4px;
     color: #173e70;
     font-size: 20px;
   }
+  .controls .subheading {
+    font-size: 11px;
+    color: #888;
+    margin-bottom: 10px;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+  }
   .controls label {
     display: block;
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 700;
     color: #333;
-    margin: 10px 0 4px;
+    margin: 9px 0 4px;
+    letter-spacing: .2px;
   }
+  .controls label .req { color: #c0392b; font-weight: 700; }
   .controls input[type=text],
+  .controls input[type=number],
   .controls input[type=password],
-  .controls input[type=file] {
+  .controls input[type=file],
+  .controls textarea {
     width: 100%;
     border: 1px solid #c9ced8;
     border-radius: 6px;
     padding: 8px;
     font: 13px Arial, sans-serif;
     background: #fff;
+    color: #1a1a1a;
+  }
+  .controls textarea {
+    min-height: 60px;
+    resize: vertical;
+    line-height: 1.4;
+  }
+  .controls .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .controls .divider {
+    height: 1px;
+    background: #e6e9f0;
+    margin: 12px 0 6px;
+  }
+  .controls .divider-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #7a8aa5;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
   }
   .controls button {
     width: 100%;
@@ -93,7 +130,7 @@
     font-size: 14px;
   }
   .controls button:disabled { background: #8a9ab5; cursor: wait; }
-  #downloadBtn { background: #157347; margin-top: 12px; }
+  #downloadBtn { background: #157347; margin-top: 10px; }
 
   .status {
     margin-top: 12px;
@@ -119,6 +156,7 @@
     border-top: 1px dashed #d3d8e0;
     padding-top: 10px;
   }
+  .hint code { background: #eef2f7; padding: 1px 5px; border-radius: 3px; font-size: 10.5px; }
 
   /* ---------- CERT AREA ---------- */
   .cert-area { flex: 1; min-width: 0; }
@@ -239,21 +277,56 @@
   <!-- ---------------- CONTROLS ---------------- -->
   <div class="controls">
     <h2>Upload Certificate</h2>
+    <div class="subheading">Fill the fields, pick images, upload</div>
 
-    <label>GitHub PAT (fine-grained, Contents: Read &amp; Write)</label>
+    <label>GitHub PAT <span class="req">*</span> <span style="color:#888;font-weight:400;">(Contents: Read &amp; Write)</span></label>
     <input type="password" id="pat" placeholder="github_pat_..." autocomplete="off">
 
-    <label>Product Number</label>
+    <label>Product Number <span class="req">*</span></label>
     <input type="text" id="productNo" placeholder="026-N07-024">
 
-    <label>Front Image (.jpg / .png)</label>
+    <label>Front Image <span class="req">*</span> (.jpg / .png)</label>
     <input type="file" id="frontFile" accept="image/*">
 
-    <label>Back Image (.jpg / .png)</label>
+    <label>Back Image <span class="req">*</span> (.jpg / .png)</label>
     <input type="file" id="backFile" accept="image/*">
 
-    <label>JSON Data File (.json)</label>
-    <input type="file" id="jsonFile" accept=".json,application/json">
+    <div class="divider"></div>
+    <div class="divider-label">Certificate Data</div>
+
+    <div class="row">
+      <div>
+        <label>Mukhi Count <span class="req">*</span></label>
+        <input type="number" id="mukhi" placeholder="7" min="1" max="33">
+      </div>
+      <div>
+        <label>Shape</label>
+        <input type="text" id="shape" placeholder="Round" value="Round">
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label>Weight (gm.)</label>
+        <input type="text" id="weight" placeholder="2.80">
+      </div>
+      <div>
+        <label>Dimension (mm.)</label>
+        <input type="text" id="dimension" placeholder="20.9 × 19.0 × 16.9">
+      </div>
+    </div>
+
+    <label>Tests Carried Out</label>
+    <input type="text" id="tests" placeholder="Magnification" value="Magnification">
+
+    <label>Observation</label>
+    <textarea id="observation" placeholder="7/7 Natural Face, Magnification shows no any tampering which proves natural origin"></textarea>
+
+    <label>Genus / Country</label>
+    <input type="text" id="genus" placeholder="Elaeocarpus ganitrus (Nepal)" value="Elaeocarpus ganitrus (Nepal)">
+
+    <label>Caption <span style="color:#888;font-weight:400;">(optional — auto from Mukhi)</span></label>
+    <input type="text" id="caption" placeholder="SEVEN FACE RUDRAKSHA">
 
     <button id="uploadBtn" type="button">Upload &amp; Generate Certificate</button>
     <button id="downloadBtn" type="button" style="display:none;">Download Certificate as PNG</button>
@@ -263,15 +336,19 @@
     <div class="hint">
       Uploads go to<br>
       <code>businessdevil/NRL-Rudraksha/main/Magnification/{productNo}/</code><br><br>
-      The QR on the PNG points to the public viewer:<br>
-      <code>CERTIFICATE_PAGE_URL?cert={productNo}</code>
+      Generated files:<br>
+      <code>{productNo}-front.jpg</code><br>
+      <code>{productNo}-back.jpg</code><br>
+      <code>{productNo}.json</code> (auto-built from form)<br><br>
+      The QR on the PNG points to:<br>
+      <code>CERT_PAGE?cert={productNo}</code>
     </div>
   </div>
 
   <!-- ---------------- CERTIFICATE ---------------- -->
   <div class="cert-area">
     <div class="cert-placeholder" id="certPlaceholder">
-      Fill in the form and click <b>Upload &amp; Generate Certificate</strong>.<br>
+      Fill in the form and click <b>Upload &amp; Generate Certificate</b>.<br>
       The generated certificate will appear here.
     </div>
 
@@ -368,7 +445,6 @@ const REPO_NAME   = 'NRL-Rudraksha';
 const BRANCH      = 'main';                       // or 'master'
 const FOLDER      = 'Magnification';
 const CERT_PAGE   = 'https://businessdevil.github.io/NRL-Rudraksha/final.html';
-// ↑ change to wherever final.html is hosted. Used to build the QR URL.
 /* ===================================================================== */
 
 const $ = id => document.getElementById(id);
@@ -390,14 +466,6 @@ function readAsBase64(file) {
     r.onload = () => res(r.result.split(',')[1]);
     r.onerror = rej;
     r.readAsDataURL(file);
-  });
-}
-function readAsText(file) {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => res(r.result);
-    r.onerror = rej;
-    r.readAsText(file);
   });
 }
 function readAsDataURL(file) {
@@ -451,7 +519,7 @@ async function uploadFile(token, path, base64Content) {
 }
 
 /* ---------------------------------------------------------------------
-   NUMBER → WORD
+   NUMBER → WORD (for auto-generated caption)
    --------------------------------------------------------------------- */
 const WORD = ['ZERO','ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE','TEN',
               'ELEVEN','TWELVE','THIRTEEN','FOURTEEN','FIFTEEN','SIXTEEN','SEVENTEEN','EIGHTEEN',
@@ -461,59 +529,88 @@ const WORD = ['ZERO','ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NI
 const numberToWord = n => WORD[n] || String(n);
 
 /* ---------------------------------------------------------------------
-   MAIN FLOW
+   MAIN FLOW — upload + render
    --------------------------------------------------------------------- */
 uploadBtn.addEventListener('click', async () => {
-  const token = $('pat').value.trim();
-  const productNo = $('productNo').value.trim();
-  const frontFile = $('frontFile').files[0];
-  const backFile  = $('backFile').files[0];
-  const jsonFile  = $('jsonFile').files[0];
+  const token      = $('pat').value.trim();
+  const productNo  = $('productNo').value.trim();
+  const frontFile  = $('frontFile').files[0];
+  const backFile   = $('backFile').files[0];
+  const mukhiRaw   = $('mukhi').value.trim();
 
-  if (!token)      return setStatus('⚠ Please enter your GitHub PAT.', 'err');
-  if (!productNo)  return setStatus('⚠ Please enter a product number.', 'err');
-  if (!frontFile)  return setStatus('⚠ Please select a front image.', 'err');
-  if (!backFile)   return setStatus('⚠ Please select a back image.', 'err');
-  if (!jsonFile)   return setStatus('⚠ Please select a JSON data file.', 'err');
+  /* ------- VALIDATION ------- */
+  if (!token)              return setStatus('⚠ Please enter your GitHub PAT.', 'err');
+  if (!productNo)          return setStatus('⚠ Please enter a product number.', 'err');
+  if (!frontFile)          return setStatus('⚠ Please select a front image.', 'err');
+  if (!backFile)           return setStatus('⚠ Please select a back image.', 'err');
+  if (!mukhiRaw)           return setStatus('⚠ Please enter the Mukhi count.', 'err');
+  if (isNaN(parseInt(mukhiRaw))) return setStatus('⚠ Mukhi count must be a number.', 'err');
 
   uploadBtn.disabled = true;
   downloadBtn.style.display = 'none';
 
   try {
+    /* ------- BUILD DATA OBJECT FROM FORM ------- */
+    const mukhiNum = parseInt(mukhiRaw);
+    const data = {
+      productNo,
+      certNo:       productNo,
+      mukhi:        mukhiNum,
+      shape:        $('shape').value.trim() || 'Round',
+      weight:       $('weight').value.trim(),
+      dimension:    $('dimension').value.trim(),
+      tests:        $('tests').value.trim() || 'Magnification',
+      observation:  $('observation').value.trim(),
+      genus:        $('genus').value.trim() || 'Elaeocarpus ganitrus (Nepal)'
+    };
+
+    // Caption: use provided or auto from mukhi
+    const captionInput = $('caption').value.trim();
+    if (captionInput) {
+      data.caption = captionInput;
+    } else {
+      data.caption = `${numberToWord(mukhiNum)} FACE RUDRAKSHA`;
+    }
+
+    /* ------- READ LOCAL FILES ------- */
     setStatus('📖 Reading local files…', 'busy');
     const frontDataUrl = await readAsDataURL(frontFile);
     const frontBase64  = frontDataUrl.split(',')[1];
     const backBase64   = await readAsBase64(backFile);
-    const jsonText     = await readAsText(jsonFile);
 
-    let data;
-    try { data = JSON.parse(jsonText); }
-    catch (e) { throw new Error('JSON file is not valid JSON: ' + e.message); }
+    /* ------- BUILD & SERIALIZE JSON ------- */
+    const jsonText = JSON.stringify(data, null, 2);
+    // Base64-encode the JSON safely (handles UTF-8 like × and é)
+    const jsonBase64 = btoa(unescape(encodeURIComponent(jsonText)));
 
+    /* ------- UPLOAD FILES ------- */
     setStatus('⬆ Uploading front image…', 'busy');
     await uploadFile(token, `${FOLDER}/${productNo}/${productNo}-front.jpg`, frontBase64);
 
     setStatus('⬆ Uploading back image…', 'busy');
     await uploadFile(token, `${FOLDER}/${productNo}/${productNo}-back.jpg`, backBase64);
 
-    setStatus('⬆ Uploading JSON…', 'busy');
-    await uploadFile(token, `${FOLDER}/${productNo}/${productNo}.json`, btoa(unescape(encodeURIComponent(jsonText))));
+    setStatus('⬆ Uploading generated JSON…', 'busy');
+    await uploadFile(token, `${FOLDER}/${productNo}/${productNo}.json`, jsonBase64);
 
+    /* ------- RENDER THE CERTIFICATE ------- */
     setStatus('🎨 Rendering certificate & QR…', 'busy');
+    await renderCertificate({ productNo, frontDataUrl, data });
 
-    // Populate certificate
-    await renderCertificate({
-      productNo,
-      frontDataUrl,
-      data
-    });
-
-    // Show certificate
+    /* ------- SHOW & ENABLE DOWNLOAD ------- */
     $('certPlaceholder').style.display = 'none';
     $('certScroll').style.display = 'block';
     downloadBtn.style.display = 'block';
 
-    setStatus('✅ Upload complete & certificate ready.\nClick "Download Certificate as PNG" below.', 'ok');
+    setStatus(
+      '✅ Upload complete & certificate ready.\n' +
+      'Files uploaded:\n' +
+      `  • ${productNo}-front.jpg\n` +
+      `  • ${productNo}-back.jpg\n` +
+      `  • ${productNo}.json\n\n` +
+      'Click "Download Certificate as PNG" below.',
+      'ok'
+    );
 
   } catch (err) {
     console.error(err);
@@ -533,12 +630,12 @@ async function renderCertificate({ productNo, frontDataUrl, data }) {
   $('photoPreview').src = frontDataUrl;
 
   // Data fields
-  $('productOut').textContent  = data.certNo || data.productNo || productNo;
-  $('shapeOut').textContent    = data.shape || '—';
-  $('weightOut').textContent   = data.weight != null ? data.weight : '—';
+  $('productOut').textContent   = data.certNo || data.productNo || productNo;
+  $('shapeOut').textContent     = data.shape || '—';
+  $('weightOut').textContent    = data.weight != null && data.weight !== '' ? data.weight : '—';
   $('dimensionOut').textContent = data.dimension || data.dimensions || '—';
-  $('testsOut').textContent    = data.tests || 'Magnification';
-  $('genusOut').textContent    = data.genus || 'Elaeocarpus ganitrus (Nepal)';
+  $('testsOut').textContent     = data.tests || 'Magnification';
+  $('genusOut').textContent     = data.genus || 'Elaeocarpus ganitrus (Nepal)';
 
   // Observation — split by newline or after comma
   const obsRaw = (data.observation || '').toString();
@@ -562,7 +659,7 @@ async function renderCertificate({ productNo, frontDataUrl, data }) {
   });
   $('qrPreview').src = qrDataUrl;
 
-  // Wait for images to load
+  // Wait for all images to load
   await Promise.all(
     Array.from(document.querySelectorAll('#certificate img'))
       .filter(img => img.src)
