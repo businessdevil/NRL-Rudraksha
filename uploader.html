@@ -6,11 +6,11 @@
 <title>NRL Certificate Uploader & PNG Generator</title>
 
 <!-- ============================================================
-     GOOGLE FONTS (no base64 — graceful fallbacks if unavailable)
+     GOOGLE FONTS — Cinzel (serif display, works for both uses)
      ============================================================ -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Lucidity&family=The+Seasons&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
 
 <!-- QR generation -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.0/qrcode.min.js"></script>
@@ -86,6 +86,16 @@
   .status.err  { background: #fbe0e0; color: #8a1b1b; }
   .status.busy { background: #fff5d6; color: #7a5c00; }
 
+  .progress {
+    margin-top: 8px; height: 6px; background: #e2e7f0;
+    border-radius: 3px; overflow: hidden; display: none;
+  }
+  .progress.active { display: block; }
+  .progress-bar {
+    height: 100%; width: 0%; background: #284d7c;
+    transition: width .25s ease;
+  }
+
   .hint {
     margin-top: 12px; font-size: 11px; line-height: 1.5;
     color: #666; border-top: 1px dashed #d3d8e0; padding-top: 10px;
@@ -116,18 +126,21 @@
   }
   .lab-title {
     position: absolute; top: 18px; left: 228px; width: 640px;
-    text-align: center; color: #fff; font-family: Georgia, "Times New Roman", serif;
+    text-align: center; color: #fff;
+    font-family: "Cinzel", "EB Garamond", Georgia, "Times New Roman", serif;
     font-size: 50px; line-height: 1; font-weight: 400; letter-spacing: .2px; white-space: nowrap;
   }
   .lab-subtitle {
     position: absolute; top: 92px; left: -50px; width: 430px;
-    color: #fff; font-family: Georgia, "Times New Roman", serif;
+    color: #fff;
+    font-family: "Cinzel", "EB Garamond", Georgia, "Times New Roman", serif;
     font-size: 24px; line-height: 1.12; text-align: center;
   }
   .location {
     position: absolute; right: 17px; top: 106px;
     display: flex; align-items: center; gap: 8px;
-    color: #fff; font-family: Georgia, "Times New Roman", serif;
+    color: #fff;
+    font-family: "Cinzel", "EB Garamond", Georgia, "Times New Roman", serif;
     font-size: 23px; white-space: nowrap;
   }
   .pin-wrap { width: 31px; height: 36px; display: inline-flex; transform: translateY(-2px); }
@@ -136,8 +149,9 @@
   .heading {
     position: absolute; top: 168px; left: 0; width: 100%; text-align: center;
     color: #284d7c;
-    font-family: "The Seasons", "EB Garamond", Georgia, "Times New Roman", serif;
-    font-size: 45px; line-height: 1; font-weight: 400; white-space: nowrap;
+    font-family: "Cinzel", "EB Garamond", Georgia, "Times New Roman", serif;
+    font-size: 42px; line-height: 1; font-weight: 400; white-space: nowrap;
+    letter-spacing: 1px;
   }
   .rule {
     position: absolute; left: 168px; top: 210px; width: 728px; height: 5px;
@@ -160,8 +174,8 @@
     border: 3px solid #0750ad; background: #f1f2ff; color: #111;
     display: flex; align-items: center; justify-content: center; text-align: center;
     padding: 8px;
-    font-family: "Lucidity", "Cinzel", "Trebuchet MS", Arial, sans-serif;
-    font-size: 18px; line-height: 1.15; letter-spacing: .2px;
+    font-family: "Cinzel", "EB Garamond", Georgia, "Times New Roman", serif;
+    font-size: 18px; line-height: 1.2; letter-spacing: .5px; font-weight: 600;
   }
 
   .data-panel {
@@ -189,8 +203,8 @@
     border: 3px solid #0750ad; background: #f1f2ff; color: #111;
     display: flex; align-items: center; justify-content: center; text-align: center;
     padding: 7px;
-    font-family: "Lucidity", "Cinzel", "Trebuchet MS", Arial, sans-serif;
-    font-size: 21px; line-height: 1.35;
+    font-family: "Cinzel", "EB Garamond", Georgia, "Times New Roman", serif;
+    font-size: 18px; line-height: 1.25; font-weight: 600; letter-spacing: .5px;
   }
 </style>
 </head>
@@ -254,6 +268,8 @@
 
     <button id="uploadBtn" type="button">Upload &amp; Generate Certificate</button>
     <button id="downloadBtn" type="button" style="display:none;">Download Certificate as PNG</button>
+
+    <div class="progress" id="progressWrap"><div class="progress-bar" id="progressBar"></div></div>
 
     <div class="status" id="status">Ready.</div>
 
@@ -384,13 +400,25 @@ const WASM_BASE    = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.18.0/dist/'
 /* ===================================================================== */
 
 const $ = id => document.getElementById(id);
-const statusEl = $('status');
-const uploadBtn = $('uploadBtn');
+const statusEl   = $('status');
+const uploadBtn  = $('uploadBtn');
 const downloadBtn = $('downloadBtn');
+const progressWrap = $('progressWrap');
+const progressBar  = $('progressBar');
 
 function setStatus(msg, kind = '') {
   statusEl.textContent = msg;
   statusEl.className = 'status' + (kind ? ' ' + kind : '');
+}
+
+function setProgress(pct) {
+  if (pct == null) {
+    progressWrap.classList.remove('active');
+    progressBar.style.width = '0%';
+  } else {
+    progressWrap.classList.add('active');
+    progressBar.style.width = Math.max(0, Math.min(100, pct)) + '%';
+  }
 }
 
 /* ---------------------------------------------------------------------
@@ -466,8 +494,8 @@ function getSession() {
   if (_sessionPromise) return _sessionPromise;
 
   _sessionPromise = (async () => {
-    // Load ONNX Runtime Web (ESM) once
     if (!_ortModule) {
+      setStatus('📦 Loading ONNX runtime…', 'busy');
       _ortModule = await import('https://esm.sh/onnxruntime-web@1.18.0');
       _ortModule.env.wasm.wasmPaths = WASM_BASE;
       _ortModule.env.wasm.numThreads = 1;
@@ -475,7 +503,7 @@ function getSession() {
     }
     const ort = _ortModule;
 
-    // Try cache first
+    // Try cache
     let modelBuffer = null;
     try {
       const cache = await caches.open(CACHE_KEY);
@@ -513,7 +541,6 @@ async function whiteSquareFromAlpha(srcCanvas, targetBytes) {
   const W = srcCanvas.width, H = srcCanvas.height;
   const srcData = srcCanvas.getContext('2d').getImageData(0, 0, W, H).data;
 
-  // Bounding box of pixels with alpha > ALPHA_MIN
   let minX = W, minY = H, maxX = -1, maxY = -1;
   for (let y = 0; y < H; y++) {
     const row = y * W * 4;
@@ -566,12 +593,14 @@ async function whiteSquareFromAlpha(srcCanvas, targetBytes) {
    BG-REMOVAL PIPELINE (used for BOTH front & back)
    --------------------------------------------------------------------- */
 async function removeBackground(file, label = 'image') {
-  // 1. Pre-compress
+  // Pre-compress
+  setStatus(`[${label}] Pre-processing…`, 'busy');
   const srcBitmap = await createImageBitmap(file);
   const preBlob   = await compressToTarget(srcBitmap, TARGET_BYTES);
   const inpBitmap = await createImageBitmap(preBlob);
 
-  // 2. Resize to 320×320 & normalize (ImageNet mean/std, NCHW)
+  // Resize to 320×320 & normalize
+  setStatus(`[${label}] Normalizing…`, 'busy');
   const tmp = document.createElement('canvas');
   tmp.width = INPUT; tmp.height = INPUT;
   const tctx = tmp.getContext('2d');
@@ -589,16 +618,14 @@ async function removeBackground(file, label = 'image') {
     f32[i + 2 * N] = (px[i * 4 + 2] / 255 - mean[2]) / std[2];
   }
 
-  // 3. Inference
-  setStatus(`🤖 Removing ${label} background…`, 'busy');
+  // Inference
+  setStatus(`[${label}] Running AI (u2netp)…`, 'busy');
   const { ort, session } = await getSession();
   const tensor = new ort.Tensor('float32', f32, [1, 3, INPUT, INPUT]);
-  const feeds  = { [session.inputNames[0]]: tensor };
-  const results = await session.run(feeds);
-  const out = results[session.outputNames[0]];
-  const maskRaw = out.data;
+  const results = await session.run({ [session.inputNames[0]]: tensor });
+  const maskRaw = results[session.outputNames[0]].data;
 
-  // 4. Min-max normalize mask → 0..255
+  // Min-max normalize
   let mn = Infinity, mx = -Infinity;
   for (let i = 0; i < maskRaw.length; i++) {
     const v = maskRaw[i];
@@ -607,7 +634,7 @@ async function removeBackground(file, label = 'image') {
   }
   const rng = (mx - mn) || 1;
 
-  // 5. Build 320×320 alpha mask canvas
+  // Build alpha mask canvas
   const maskCanvas = document.createElement('canvas');
   maskCanvas.width = INPUT; maskCanvas.height = INPUT;
   const mCtx = maskCanvas.getContext('2d');
@@ -621,7 +648,8 @@ async function removeBackground(file, label = 'image') {
   }
   mCtx.putImageData(mImg, 0, 0);
 
-  // 6. Composite: mask scaled to source, then source-in
+  // Composite: scaled mask + source-in
+  setStatus(`[${label}] Compositing…`, 'busy');
   const W = inpBitmap.width, H = inpBitmap.height;
   const comp = document.createElement('canvas');
   comp.width = W; comp.height = H;
@@ -631,8 +659,8 @@ async function removeBackground(file, label = 'image') {
   cctx.globalCompositeOperation = 'source-in';
   cctx.drawImage(inpBitmap, 0, 0, W, H);
 
-  // 7. White square + bbox crop + compress
-  setStatus(`✂️ Cropping & centering ${label}…`, 'busy');
+  // White square + compress
+  setStatus(`[${label}] Cropping & centering…`, 'busy');
   return await whiteSquareFromAlpha(comp, TARGET_BYTES);
 }
 
@@ -700,7 +728,6 @@ uploadBtn.addEventListener('click', async () => {
   const backFile  = $('backFile').files[0];
   const mukhiRaw  = $('mukhi').value.trim();
 
-  /* --- validation --- */
   if (!token)            return setStatus('⚠ Please enter your GitHub PAT.', 'err');
   if (!productNo)        return setStatus('⚠ Please enter a product number.', 'err');
   if (!frontFile)        return setStatus('⚠ Please select a front image.', 'err');
@@ -710,9 +737,10 @@ uploadBtn.addEventListener('click', async () => {
 
   uploadBtn.disabled = true;
   downloadBtn.style.display = 'none';
+  setProgress(0);
 
   try {
-    /* ---- build data object ---- */
+    /* ---- Build data ---- */
     const mukhiNum = parseInt(mukhiRaw);
     const data = {
       productNo,
@@ -728,30 +756,33 @@ uploadBtn.addEventListener('click', async () => {
     const captionInput = $('caption').value.trim();
     data.caption = captionInput || `${numberToWord(mukhiNum)} FACE RUDRAKSHA`;
 
-    /* ---- FRONT: remove background ---- */
+    /* ---- FRONT: remove BG ---- */
+    setProgress(10);
     let frontBlob;
     try {
       frontBlob = await removeBackground(frontFile, 'front');
     } catch (e) {
-      console.warn('Front BG removal failed, using compressed original:', e);
-      setStatus('⚠ Front BG removal failed — using compressed original front image.', 'err');
+      console.warn('Front BG removal failed:', e);
+      setStatus('⚠ Front BG removal failed — using compressed original.', 'err');
       const bm = await createImageBitmap(frontFile);
       frontBlob = await compressToTarget(bm, TARGET_BYTES);
     }
     const frontDataUrl = await blobToDataURL(frontBlob);
     const frontBase64  = frontDataUrl.split(',')[1];
+    setProgress(45);
 
-    /* ---- BACK: remove background ---- */
+    /* ---- BACK: remove BG ---- */
     let backBlob;
     try {
       backBlob = await removeBackground(backFile, 'back');
     } catch (e) {
-      console.warn('Back BG removal failed, using compressed original:', e);
-      setStatus('⚠ Back BG removal failed — using compressed original back image.', 'err');
+      console.warn('Back BG removal failed:', e);
+      setStatus('⚠ Back BG removal failed — using compressed original.', 'err');
       const bm = await createImageBitmap(backFile);
       backBlob = await compressToTarget(bm, TARGET_BYTES);
     }
     const backBase64 = await blobToBase64(backBlob);
+    setProgress(75);
 
     /* ---- JSON ---- */
     const jsonText   = JSON.stringify(data, null, 2);
@@ -760,16 +791,20 @@ uploadBtn.addEventListener('click', async () => {
     /* ---- UPLOAD ---- */
     setStatus('⬆ Uploading front image (bg removed)…', 'busy');
     await uploadFile(token, `${FOLDER}/${productNo}/${productNo}-front.jpg`, frontBase64);
+    setProgress(82);
 
     setStatus('⬆ Uploading back image (bg removed)…', 'busy');
     await uploadFile(token, `${FOLDER}/${productNo}/${productNo}-back.jpg`, backBase64);
+    setProgress(90);
 
     setStatus('⬆ Uploading generated JSON…', 'busy');
     await uploadFile(token, `${FOLDER}/${productNo}/${productNo}.json`, jsonBase64);
+    setProgress(95);
 
     /* ---- RENDER ---- */
     setStatus('🎨 Rendering certificate & QR…', 'busy');
     await renderCertificate({ productNo, frontDataUrl, data });
+    setProgress(100);
 
     /* ---- DONE ---- */
     $('certPlaceholder').style.display = 'none';
@@ -785,9 +820,12 @@ uploadBtn.addEventListener('click', async () => {
       'Click "Download Certificate as PNG" below.',
       'ok'
     );
+
+    setTimeout(() => setProgress(null), 1200);
   } catch (err) {
     console.error(err);
     setStatus('❌ ' + err.message, 'err');
+    setProgress(null);
   } finally {
     uploadBtn.disabled = false;
   }
@@ -799,10 +837,8 @@ uploadBtn.addEventListener('click', async () => {
 async function renderCertificate({ productNo, frontDataUrl, data }) {
   const mukhi = parseInt(data.mukhi) || (productNo.match(/-N(\d+)-/i)?.[1]) || 0;
 
-  // Photo
   $('photoPreview').src = frontDataUrl;
 
-  // Fields
   $('productOut').textContent   = data.certNo || data.productNo || productNo;
   $('shapeOut').textContent     = data.shape || '—';
   $('weightOut').textContent    = (data.weight != null && data.weight !== '') ? data.weight : '—';
@@ -810,7 +846,6 @@ async function renderCertificate({ productNo, frontDataUrl, data }) {
   $('testsOut').textContent     = data.tests || 'Magnification';
   $('genusOut').textContent     = data.genus || 'Elaeocarpus ganitrus (Nepal)';
 
-  // Observation — split by newline or after comma
   const obsRaw = (data.observation || '').toString().trim();
   const obsLines = obsRaw
     .split(/\n|(?<=,)\s+/)
@@ -818,7 +853,6 @@ async function renderCertificate({ productNo, frontDataUrl, data }) {
     .filter(Boolean);
   $('observationOut').innerHTML = obsLines.join('<br>') || '—';
 
-  // Caption
   let caption = data.caption || (mukhi ? `${numberToWord(mukhi)} FACE RUDRAKSHA` : 'RUDRAKSHA');
   caption = caption.replace(/\bFACE\b/i, 'FACE<br>').replace(/\n/g, '<br>');
   $('captionOut').innerHTML = caption;
@@ -832,7 +866,7 @@ async function renderCertificate({ productNo, frontDataUrl, data }) {
   });
   $('qrPreview').src = qrDataUrl;
 
-  // Wait for all cert images
+  // Wait for images
   await Promise.all(
     Array.from(document.querySelectorAll('#certificate img'))
       .filter(img => img.src)
@@ -841,6 +875,9 @@ async function renderCertificate({ productNo, frontDataUrl, data }) {
         img.onload = img.onerror = () => res();
       }))
   );
+
+  // Wait for Cinzel to load
+  try { await document.fonts.load('400 42px Cinzel'); } catch (e) {}
 }
 
 /* ---------------------------------------------------------------------
