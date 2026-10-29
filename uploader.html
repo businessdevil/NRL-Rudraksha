@@ -6,11 +6,31 @@
 <title>NRL Certificate Uploader & PNG Generator</title>
 
 <!-- ============================================================
-     GOOGLE FONTS — EB Garamond (elegant serif, works for both uses)
+     ✏️  STEP 1: PASTE YOUR BASE64 FONT DATA BELOW
+     ------------------------------------------------------------
+     Replace BOTH placeholders:
+
+       REPLACE_WITH_THE_SEASONS_BASE64  → The Seasons OTF base64
+       REPLACE_WITH_LUCIDITY_BASE64     → Lucidity WOFF2 base64
+
+     Only the base64 characters — NOT the "data:font/...;base64," prefix.
      ============================================================ -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
+<style id="embedded-certificate-fonts">
+@font-face {
+  font-family: "TheSeasonsEmbedded";
+  src: url("data:font/otf;base64,REPLACE_WITH_THE_SEASONS_BASE64") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+@font-face {
+  font-family: "LucidityEmbedded";
+  src: url("data:font/woff2;base64,REPLACE_WITH_LUCIDITY_BASE64") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: block;
+}
+</style>
 
 <!-- QR generation -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.0/qrcode.min.js"></script>
@@ -127,21 +147,21 @@
   .lab-title {
     position: absolute; top: 18px; left: 228px; width: 640px;
     text-align: center; color: #fff;
-    font-family: "EB Garamond", Georgia, "Times New Roman", serif;
-    font-size: 52px; line-height: 1; font-weight: 500; letter-spacing: .2px; white-space: nowrap;
+    font-family: "TheSeasonsEmbedded", Georgia, "Times New Roman", serif;
+    font-size: 50px; line-height: 1; font-weight: 400; letter-spacing: .2px; white-space: nowrap;
   }
   .lab-subtitle {
     position: absolute; top: 92px; left: -50px; width: 430px;
     color: #fff;
-    font-family: "EB Garamond", Georgia, "Times New Roman", serif;
-    font-size: 25px; line-height: 1.12; text-align: center; font-weight: 500;
+    font-family: "TheSeasonsEmbedded", Georgia, "Times New Roman", serif;
+    font-size: 24px; line-height: 1.12; text-align: center;
   }
   .location {
     position: absolute; right: 17px; top: 106px;
     display: flex; align-items: center; gap: 8px;
     color: #fff;
-    font-family: "EB Garamond", Georgia, "Times New Roman", serif;
-    font-size: 24px; white-space: nowrap; font-weight: 500;
+    font-family: "TheSeasonsEmbedded", Georgia, "Times New Roman", serif;
+    font-size: 23px; white-space: nowrap;
   }
   .pin-wrap { width: 31px; height: 36px; display: inline-flex; transform: translateY(-2px); }
   .pin svg { display: block; width: 27px; height: 35px; color: #fff; }
@@ -149,9 +169,8 @@
   .heading {
     position: absolute; top: 168px; left: 0; width: 100%; text-align: center;
     color: #284d7c;
-    font-family: "EB Garamond", Georgia, "Times New Roman", serif;
-    font-size: 44px; line-height: 1; font-weight: 500; white-space: nowrap;
-    letter-spacing: 1px;
+    font-family: "TheSeasonsEmbedded", Georgia, "Times New Roman", serif;
+    font-size: 45px; line-height: 1; font-weight: 400; white-space: nowrap;
   }
   .rule {
     position: absolute; left: 168px; top: 210px; width: 728px; height: 5px;
@@ -174,8 +193,8 @@
     border: 3px solid #0750ad; background: #f1f2ff; color: #111;
     display: flex; align-items: center; justify-content: center; text-align: center;
     padding: 8px;
-    font-family: "EB Garamond", Georgia, "Times New Roman", serif;
-    font-size: 20px; line-height: 1.15; letter-spacing: .5px; font-weight: 600;
+    font-family: "LucidityEmbedded", Arial, sans-serif;
+    font-size: 18px; line-height: 1.15; letter-spacing: .2px;
   }
 
   .data-panel {
@@ -203,8 +222,8 @@
     border: 3px solid #0750ad; background: #f1f2ff; color: #111;
     display: flex; align-items: center; justify-content: center; text-align: center;
     padding: 7px;
-    font-family: "EB Garamond", Georgia, "Times New Roman", serif;
-    font-size: 20px; line-height: 1.2; font-weight: 600; letter-spacing: .5px;
+    font-family: "LucidityEmbedded", Arial, sans-serif;
+    font-size: 21px; line-height: 1.35;
   }
 </style>
 </head>
@@ -503,7 +522,6 @@ function getSession() {
     }
     const ort = _ortModule;
 
-    // Try cache
     let modelBuffer = null;
     try {
       const cache = await caches.open(CACHE_KEY);
@@ -868,11 +886,12 @@ async function renderCertificate({ productNo, frontDataUrl, data }) {
       }))
   );
 
-  // Wait for EB Garamond to load
+  // Wait for embedded fonts to be ready (base64 — loads instantly)
   try {
-    await document.fonts.load('500 44px "EB Garamond"');
-    await document.fonts.load('600 20px "EB Garamond"');
-  } catch (e) {}
+    await document.fonts.load('400 45px "TheSeasonsEmbedded"');
+    await document.fonts.load('400 20px "LucidityEmbedded"');
+    await document.fonts.ready;
+  } catch (e) { /* non-fatal */ }
 }
 
 /* ---------------------------------------------------------------------
