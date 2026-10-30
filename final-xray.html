@@ -151,7 +151,6 @@
     grid-column: 1 / -1; justify-self: center;
     width: calc(50% - .25rem); max-width: 100%;
   }
-  /* X-ray image should show fully — not cropped */
   .image-card-third img { object-fit: contain; background: #0a0a0a; }
   .image-label {
     text-align: center; padding: .55rem .4rem .25rem;
@@ -434,14 +433,11 @@
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const d = await res.json();
       Object.assign(certData, d);
-      // fill any missing
       certData.certNo     = certData.certNo     || certParam;
       certData.productNo  = certData.productNo  || certParam;
       certData.dimension  = certData.dimension  || certData.dimensions || '';
       certData.genus      = certData.genus      || '';
-      certData.observation= (certData.observation || '').trim();
       certData.xrayFile   = certData.xrayFile   || '';
-      // rename xrayFile extension if productNo needed
       if (certData.xrayFile && !certData.xrayFile.startsWith(certData.productNo)) {
         const ext = (certData.xrayFile.match(/\.([a-z0-9]+)$/i) || [,'jpg'])[1];
         certData.xrayFile = `${certData.productNo}-xray.${ext}`;
@@ -465,11 +461,9 @@
     backImg.src  = `${base}/${encodeURIComponent(pid)}-back.jpg`;
 
     if (certData.xrayFile) {
-      // Exact file from JSON — trust it
       detailImg.onerror = null;
       detailImg.src = `${base}/${encodeURIComponent(certData.xrayFile)}`;
     } else {
-      // Fallback: try common extensions
       const exts = ['jpg', 'jpeg', 'png', 'webp'];
       let i = 0;
       detailImg.onerror = () => {
@@ -484,7 +478,7 @@
     }
   }
 
-  /* ---------- BUILD TRANSLATIONS (dynamic from certData) ---------- */
+  /* ---------- BUILD TRANSLATIONS ---------- */
   function buildTranslations() {
     const mukhiNum  = parseInt(certData.mukhi) || 0;
     const weightNum = parseFloat(certData.weight) || 0;
@@ -492,7 +486,6 @@
     const shapeKey  = certData.shape || 'Round';
     const genus     = certData.genus || 'Elaeocarpus ganitrus (Nepal)';
     const certNo    = certData.certNo || certParam || '—';
-    const obs       = certData.observation || '';
 
     const shapeMap = {
       Round:    { en: 'Round',     ne: 'गोलाकार' },
@@ -502,8 +495,9 @@
     const shapeSel = shapeMap[shapeKey] || shapeMap['Round'];
     const nepMukhi = mukhiNum ? `${toNeNum(mukhiNum)} मुखी` : '—';
 
-    const obsEn = obs || `Under magnification and X-ray analysis, the bead exhibits ${mukhiNum || '—'} distinct, naturally formed mukhi lines and respective natural internal compartments with no evidence of artificial scoring or chemical treatment. Surface texture and internal structure are consistent with authentic Elaeocarpus ganitrus origin. No synthetic resin, pigment dyes, or tampering detected.`;
-    const obsNe = obs || `आवर्धन र एक्स-रे विश्लेषण अन्तर्गत, दानामा ${toNeNum(mukhiNum || 0)} वटा प्राकृतिक मुखीको रेखाहरू र सम्बन्धित प्राकृतिक आन्तरिक कक्षहरू अवलोकन गरिन्छ जसमा कृत्रिम बनावट वा रासायनिक प्रयोगको कुनै प्रमाण छैन। सतहको बनावट र आन्तरिक संरचना हेर्दा रुद्राक्ष Elaeocarpus ganitrus (Nepal) प्रजातिको पुष्टि हुन्छ। कुनै कृत्रिम पदार्थ, रंगद्रव्य रङ्ग, वा छेडखानी पत्ता लागेन।`;
+    /* ⬇⬇⬇ TEMPLATE TEXT ALWAYS USED — user input ignored ⬇⬇⬇ */
+    const obsEn = `Under magnification and X-ray analysis, the bead exhibits ${mukhiNum || '—'} distinct, naturally formed mukhi lines and respective natural internal compartments with no evidence of artificial scoring or chemical treatment. Surface texture and internal structure are consistent with authentic Elaeocarpus ganitrus origin. No synthetic resin, pigment dyes, or tampering detected.`;
+    const obsNe = `आवर्धन र एक्स-रे विश्लेषण अन्तर्गत, दानामा ${toNeNum(mukhiNum || 0)} वटा प्राकृतिक मुखीको रेखाहरू र सम्बन्धित प्राकृतिक आन्तरिक कक्षहरू अवलोकन गरिन्छ जसमा कृत्रिम बनावट वा रासायनिक प्रयोगको कुनै प्रमाण छैन। सतहको बनावट र आन्तरिक संरचना हेर्दा रुद्राक्ष Elaeocarpus ganitrus (Nepal) प्रजातिको पुष्टि हुन्छ। कुनै कृत्रिम पदार्थ, रंगद्रव्य रङ्ग, वा छेडखानी पत्ता लागेन।`;
 
     return {
       en: {
@@ -631,22 +625,11 @@
 
   /* ---------- INIT ---------- */
   (async function init() {
-    // 1) Render defaults immediately
     applyLanguage('en');
-
-    // 2) Set image URLs (starts loading right away)
     setImages();
-
-    // 3) Fetch JSON (may refine values / xrayFile)
     await loadCertJson();
-
-    // 4) Re-set images (picks up exact xrayFile from JSON)
     setImages();
-
-    // 5) Re-apply language with loaded data
     applyLanguage(currentLang);
-
-    // 6) Hide loader
     const lo = $('loadingOverlay');
     if (lo) {
       lo.classList.add('hide');
