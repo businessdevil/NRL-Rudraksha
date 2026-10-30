@@ -199,17 +199,17 @@
       </div>
     </div>
 
-    <label>Tests Carried Out</label>
-    <input type="text" id="tests" placeholder="Magnification" value="Magnification">
+    <label>Tests Carried Out <span style="color:#888;font-weight:400;">(auto from Template)</span></label>
+    <input type="text" id="tests" placeholder="Auto-fills from template…">
 
-    <label>Observation</label>
-    <textarea id="observation" placeholder="7/7 Natural Face, Magnification shows no any tampering which proves natural origin"></textarea>
+    <label>Observation <span style="color:#888;font-weight:400;">(auto from Mukhi + Template)</span></label>
+    <textarea id="observation" placeholder="Enter Mukhi to auto-fill…"></textarea>
 
     <label>Genus / Country</label>
     <input type="text" id="genus" placeholder="Elaeocarpus ganitrus (Nepal)" value="Elaeocarpus ganitrus (Nepal)">
 
-    <label>Caption <span style="color:#888;font-weight:400;">(optional — auto from Mukhi)</span></label>
-    <input type="text" id="caption" placeholder="SEVEN FACE RUDRAKSHA">
+    <label>Caption <span style="color:#888;font-weight:400;">(auto from Mukhi)</span></label>
+    <input type="text" id="caption" placeholder="Enter Mukhi to auto-fill…">
 
     <button id="uploadBtn" type="button">Upload &amp; Generate Certificate</button>
     <button id="downloadBtn" type="button" style="display:none;">Download Certificate as PNG</button>
@@ -318,8 +318,53 @@ document.querySelectorAll('input[name="template"]').forEach(r => {
     document.querySelectorAll('.template-option').forEach(el => el.classList.toggle('active', el.dataset.template === v));
     $('xraySection').style.display = (v === 'xray') ? 'block' : 'none';
     setStatus(`Template: ${v === 'xray' ? 'X-Ray' : 'Magnification'}`, '');
+    updateAutoFields();
   });
 });
+
+/* AUTO-FILL — Caption, Observation & Tests from Mukhi + Template */
+let lastAutoCaption = '';
+let lastAutoObservation = '';
+let lastAutoTests = '';
+
+function generateAutoCaption() {
+  const m = parseInt($('mukhi').value.trim(), 10);
+  return m ? `${numberToWord(m)} FACE RUDRAKSHA` : '';
+}
+
+function generateAutoObservation() {
+  const m = parseInt($('mukhi').value.trim(), 10);
+  const tplName = getTemplate() === 'xray' ? 'X-Ray' : 'Magnification';
+  return m ? `${m}/${m} Natural Face, ${tplName} shows No any Tampering which proves Natural Origin` : '';
+}
+
+function generateAutoTests() {
+  return getTemplate() === 'xray' ? 'X-Ray' : 'Magnification';
+}
+
+function updateAutoFields() {
+  const capEl = $('caption');
+  const obsEl = $('observation');
+  const testEl = $('tests');
+  const newCap = generateAutoCaption();
+  const newObs = generateAutoObservation();
+  const newTests = generateAutoTests();
+
+  if (!capEl.value || capEl.value === lastAutoCaption) {
+    capEl.value = newCap;
+    lastAutoCaption = newCap;
+  }
+  if (!obsEl.value || obsEl.value === lastAutoObservation) {
+    obsEl.value = newObs;
+    lastAutoObservation = newObs;
+  }
+  if (!testEl.value || testEl.value === lastAutoTests) {
+    testEl.value = newTests;
+    lastAutoTests = newTests;
+  }
+}
+
+$('mukhi').addEventListener('input', updateAutoFields);
 
 /* FIT */
 function fitCertificate() {
@@ -554,7 +599,7 @@ uploadBtn.addEventListener('click', async () => {
       shape: $('shape').value.trim() || 'Round',
       weight: $('weight').value.trim(),
       dimension: $('dimension').value.trim(),
-      tests: $('tests').value.trim() || 'Magnification',
+      tests: $('tests').value.trim() || (isXray ? 'X-Ray' : 'Magnification'),
       observation: $('observation').value.trim(),
       genus: $('genus').value.trim() || 'Elaeocarpus ganitrus (Nepal)',
       template
